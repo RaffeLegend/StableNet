@@ -61,7 +61,7 @@ def train(train_loader, model, criterion, optimizer, epoch, args, tensor_writer=
         model.pre_weight1.data.copy_(pre_weight1)
 
         loss = criterion(output, target).view(1, -1).mm(weight1).view(1)
-        acc1, acc5 = accuracy(output, target, topk=(1, 5))
+        acc1, acc5 = accuracy(output, target, topk=(1, 1))
         losses.update(loss.item(), images.size(0))
         top1.update(acc1[0], images.size(0))
         top5.update(acc5[0], images.size(0))

@@ -34,7 +34,7 @@ from src.data import create_dataloader
 
 
 class Config:
-    def __init__(self, data_source, data_label, dataset_path, image_height, image_width, encoder, task, shuffle):
+    def __init__(self, data_source, data_label, dataset_path, image_height, image_width, encoder, task, shuffle, batch_size, num_threads):
         self.data_source = data_source
         self.data_label = data_label
         self.dataset_path = dataset_path
@@ -43,6 +43,8 @@ class Config:
         self.encoder = encoder
         self.task = task
         self.shuffle = shuffle
+        self.batch_size = batch_size
+        self.num_threads=num_threads
 
 def main():
     args = parser.parse_args()
@@ -178,7 +180,9 @@ def main_worker(ngpus_per_node, args):
         image_width=224,
         encoder="imagenet",
         task="classification",
-        shuffle=True
+        shuffle=True,
+        batch_size=128,
+        num_threads=1
     )
 
     train_loader = create_dataloader(cfg)
@@ -189,6 +193,7 @@ def main_worker(ngpus_per_node, args):
     
     cfg.data_label = "test"
     cfg.shuffle = False
+    cfg.batch_size = 1
     test_loader = create_dataloader(cfg)
 
     # train_dataset = datasets.ImageFolder(
