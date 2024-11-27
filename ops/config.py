@@ -117,7 +117,7 @@ parser.add_argument ('--epochs_decay', type=list, default=[24, 30], help = 'weig
 
 parser.add_argument ('--classes_num', type=int, default=5, help = 'number of epoch for lambda to decay')
 
-parser.add_argument ('--dataset', type=str, default="PACS", help = '')
+parser.add_argument ('--dataset', type=str, default="DomainSet", help = '')
 parser.add_argument ('--sub_dataset', type=str, default="", help = '')
 parser.add_argument ('--gray_scale', type=float, default=0.1, help = 'weight lambda for second order moment loss')
 

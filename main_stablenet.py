@@ -28,6 +28,21 @@ from utilis.saving import save_checkpoint
 
 best_acc1 = 0
 
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), "../RaffeModelTraining"))
+from src.data import create_dataloader
+
+
+class Config:
+    def __init__(self, data_source, data_label, dataset_path, image_height, image_width, encoder, task, shuffle):
+        self.data_source = data_source
+        self.data_label = data_label
+        self.dataset_path = dataset_path
+        self.image_height = image_height
+        self.image_width = image_width
+        self.encoder = encoder
+        self.task = task
+        self.shuffle = shuffle
 
 def main():
     args = parser.parse_args()
@@ -37,6 +52,8 @@ def main():
         args.classes_num = 7
     elif args.dataset == "VLCS":
         args.classes_num = 5
+    elif args.dataset == "DomainSet":
+        args.classes_num = 2
     else:
         args.classes_num = 20
 
@@ -148,61 +165,83 @@ def main_worker(ngpus_per_node, args):
 
     cudnn.benchmark = True
 
-    traindir = os.path.join(args.data, 'train')
-    valdir = os.path.join(args.data, 'val')
-    testdir = os.path.join(args.data, 'test')
+    # traindir = os.path.join(args.data, 'train')
+    # valdir = os.path.join(args.data, 'val')
+    # testdir = os.path.join(args.data, 'test')
 
-    train_dataset = datasets.ImageFolder(
-        traindir,
-        transforms.Compose([
-            transforms.RandomResizedCrop(224, scale=(args.min_scale, 1.0)),
-            transforms.RandomHorizontalFlip(),
-            transforms.ColorJitter(.4, .4, .4, .4),
-            transforms.RandomGrayscale(args.gray_scale),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-        ]))
 
-    if args.distributed:
-        print("initializing distributed sampler")
-        train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset)
-    else:
-        train_sampler = None
+    cfg = Config(
+        data_source="folder",
+        data_label="train",
+        dataset_path=args.data,
+        image_height=224,
+        image_width=224,
+        encoder="imagenet",
+        task="classification",
+        shuffle=True
+    )
 
-    train_loader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=args.batch_size, shuffle=(train_sampler is None),
-        num_workers=args.workers, pin_memory=True, sampler=train_sampler)
+    train_loader = create_dataloader(cfg)
 
-    val_loader = torch.utils.data.DataLoader(
-        datasets.ImageFolder(valdir, transforms.Compose([
-            transforms.Resize((224, 224)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    cfg.data_label = "val"
+    cfg.shuffle = False
+    val_loader = create_dataloader(cfg)
+    
+    cfg.data_label = "test"
+    cfg.shuffle = False
+    test_loader = create_dataloader(cfg)
 
-        ])),
-        batch_size=args.batch_size, shuffle=False,
-        num_workers=args.workers, pin_memory=True)
-    test_loader = torch.utils.data.DataLoader(
-        datasets.ImageFolder(testdir, transforms.Compose([
-            transforms.Resize((224, 224)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    # train_dataset = datasets.ImageFolder(
+    #     traindir,
+    #     transforms.Compose([
+    #         transforms.RandomResizedCrop(224, scale=(args.min_scale, 1.0)),
+    #         transforms.RandomHorizontalFlip(),
+    #         transforms.ColorJitter(.4, .4, .4, .4),
+    #         transforms.RandomGrayscale(args.gray_scale),
+    #         transforms.ToTensor(),
+    #         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    #     ]))
 
-        ])),
-        batch_size=args.batch_size, shuffle=False,
-        num_workers=args.workers, pin_memory=True)
+    # if args.distributed:
+    #     print("initializing distributed sampler")
+    #     train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset)
+    # else:
+    #     train_sampler = None
+
+    # train_loader = torch.utils.data.DataLoader(
+    #     train_dataset, batch_size=args.batch_size, shuffle=(train_sampler is None),
+    #     num_workers=args.workers, pin_memory=True, sampler=train_sampler)
+
+    # val_loader = torch.utils.data.DataLoader(
+    #     datasets.ImageFolder(valdir, transforms.Compose([
+    #         transforms.Resize((224, 224)),
+    #         transforms.ToTensor(),
+    #         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+
+    #     ])),
+    #     batch_size=args.batch_size, shuffle=False,
+    #     num_workers=args.workers, pin_memory=True)
+    # test_loader = torch.utils.data.DataLoader(
+    #     datasets.ImageFolder(testdir, transforms.Compose([
+    #         transforms.Resize((224, 224)),
+    #         transforms.ToTensor(),
+    #         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+
+    #     ])),
+    #     batch_size=args.batch_size, shuffle=False,
+    #     num_workers=args.workers, pin_memory=True)
 
     log_dir = os.path.dirname(args.log_path)
     print('tensorboard dir {}'.format(log_dir))
     tensor_writer = SummaryWriter(log_dir)
 
-    if args.evaluate:
-        validate(test_loader, model, criterion, 0, True, args, tensor_writer)
-        return
+    # if args.evaluate:
+    #     validate(test_loader, model, criterion, 0, True, args, tensor_writer)
+    #     return
 
     for epoch in range(args.start_epoch, args.epochs):
-        if args.distributed:
-            train_sampler.set_epoch(epoch)
+        # if args.distributed:
+        #     train_sampler.set_epoch(epoch)
         lr_setter(optimizer, epoch, args)
 
         train(train_loader, model, criterion_train, optimizer, epoch, args, tensor_writer)
@@ -213,16 +252,17 @@ def main_worker(ngpus_per_node, args):
         is_best = acc1 > best_acc1
         best_acc1 = max(acc1, best_acc1)
 
-        if not args.multiprocessing_distributed or (args.multiprocessing_distributed
-                                                    and args.rank % ngpus_per_node == 0):
-            pass
-            # save_checkpoint({
-            #     'epoch': epoch + 1,
-            #     'arch': args.arch,
-            #     'state_dict': model.state_dict(),
-            #     'best_acc1': best_acc1,
-            #     'optimizer' : optimizer.state_dict(),
-            # }, is_best, args.log_path, epoch)
+        # if not args.multiprocessing_distributed or (args.multiprocessing_distributed
+        #                                             and args.rank % ngpus_per_node == 0):
+        #     pass
+        if epoch % 10 == 0:
+            save_checkpoint({
+                'epoch': epoch + 1,
+                'arch': args.arch,
+                'state_dict': model.state_dict(),
+                'best_acc1': best_acc1,
+                'optimizer' : optimizer.state_dict(),
+            }, is_best, args.log_path, epoch)
 
 
 if __name__ == '__main__':
