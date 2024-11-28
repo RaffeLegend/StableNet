@@ -252,10 +252,12 @@ def main_worker(ngpus_per_node, args):
         train(train_loader, model, criterion_train, optimizer, epoch, args, tensor_writer)
 
         val_acc1 = validate(val_loader, model, criterion, epoch, False, args, tensor_writer)
-        acc1 = validate(test_loader, model, criterion, epoch, True, args, tensor_writer)
+        # acc1 = validate(test_loader, model, criterion, epoch, True, args, tensor_writer)
 
-        is_best = acc1 > best_acc1
-        best_acc1 = max(acc1, best_acc1)
+        #is_best = acc1 > best_acc1
+        #best_acc1 = max(acc1, best_acc1)
+        is_best = val_acc1 > best_acc1
+        best_acc1 = max(val_acc1, best_acc1)
 
         # if not args.multiprocessing_distributed or (args.multiprocessing_distributed
         #                                             and args.rank % ngpus_per_node == 0):
