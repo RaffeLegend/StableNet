@@ -234,11 +234,12 @@ class ResNet_with_table(nn.Module):
 
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
-        flatten_features = self.reconstruct(x)
+        flatten_features = x
         # x = self.fc(x)
         x = self.fc1(x)
+        image = self.reconstruct(flatten_features)
 
-        return x, flatten_features
+        return x, flatten_features, image
 
     def forward(self, x):
         return self._forward_impl(x)

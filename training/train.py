@@ -47,7 +47,7 @@ def train(train_loader, model, criterion, focal_loss, optimizer, epoch, args, te
             images = images.cuda(args.gpu, non_blocking=True)
         target = target.cuda(args.gpu, non_blocking=True)
 
-        output, cfeatures = model(images)
+        output, cfeatures, recon = model(images)
         pre_features = model.pre_features
         pre_weight1 = model.pre_weight1
 
@@ -61,7 +61,7 @@ def train(train_loader, model, criterion, focal_loss, optimizer, epoch, args, te
         model.pre_weight1.data.copy_(pre_weight1)
 
         loss = criterion(output, target).view(1, -1).mm(weight1).view(1)
-        loss2 = focal_loss(cfeatures, images)
+        loss2 = focal_loss(recon, images).view(1, -1).mm(weight1).view(1)
 
         loss = loss + loss2
 
