@@ -123,7 +123,12 @@ def main_worker(ngpus_per_node, args):
         task="classification",
         shuffle=True,
         batch_size=128,
-        num_threads=1
+        num_threads=1,
+        isTrain=True,
+        no_crop=False,
+        no_flip=False,
+        augmentation=True,
+        no_resize=False,
     )
 
     num_ftrs = model.fc1.in_features
