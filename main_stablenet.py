@@ -26,11 +26,13 @@ from training.validate import validate
 from utilis.meters import AverageMeter
 from utilis.saving import save_checkpoint
 
+
 best_acc1 = 0
 
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "../RaffeModelTraining"))
 from src.data import create_dataloader
+from training.focal_frequency_loss import FocalFrequencyLoss
 
 
 class Config:
@@ -111,10 +113,27 @@ def main_worker(ngpus_per_node, args):
     # model.fc1.bias.requires_grad = True
     # print('Done')
 
+    cfg = Config(
+        data_source="folder",
+        data_label="train",
+        dataset_path=args.data,
+        image_height=224,
+        image_width=224,
+        encoder="imagenet",
+        task="classification",
+        shuffle=True,
+        batch_size=128,
+        num_threads=1
+    )
+
     num_ftrs = model.fc1.in_features
     model.fc1 = nn.Linear(num_ftrs, args.classes_num)
+    
     nn.init.xavier_uniform_(model.fc1.weight, .1)
     nn.init.constant_(model.fc1.bias, 0.)
+
+    nn.init.xavier_uniform_(model.reconstruct.weight, .1)
+    nn.init.constant_(model.reconstruct.bias, 0.)
 
     if args.distributed:
         if args.gpu is not None:
@@ -140,6 +159,8 @@ def main_worker(ngpus_per_node, args):
     # define loss function (criterion) and optimizer
     criterion = nn.CrossEntropyLoss().cuda(args.gpu)
     criterion_train = nn.CrossEntropyLoss(reduce=False).cuda(args.gpu)
+
+    focal_loss = FocalFrequencyLoss().cuda(args.gpu)
 
     optimizer = torch.optim.SGD(model.parameters(), args.lr,
                                 momentum=args.momentum,
@@ -170,20 +191,6 @@ def main_worker(ngpus_per_node, args):
     # traindir = os.path.join(args.data, 'train')
     # valdir = os.path.join(args.data, 'val')
     # testdir = os.path.join(args.data, 'test')
-
-
-    cfg = Config(
-        data_source="folder",
-        data_label="train",
-        dataset_path=args.data,
-        image_height=224,
-        image_width=224,
-        encoder="imagenet",
-        task="classification",
-        shuffle=True,
-        batch_size=128,
-        num_threads=1
-    )
 
     train_loader = create_dataloader(cfg)
 
@@ -249,7 +256,7 @@ def main_worker(ngpus_per_node, args):
         #     train_sampler.set_epoch(epoch)
         lr_setter(optimizer, epoch, args)
 
-        train(train_loader, model, criterion_train, optimizer, epoch, args, tensor_writer)
+        train(train_loader, model, criterion_train, focal_loss, optimizer, epoch, args, tensor_writer)
 
         val_acc1 = validate(val_loader, model, criterion, epoch, False, args, tensor_writer)
         # acc1 = validate(test_loader, model, criterion, epoch, True, args, tensor_writer)

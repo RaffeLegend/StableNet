@@ -17,7 +17,7 @@ from utilis.meters import AverageMeter, ProgressMeter
 from training.reweighting import weight_learner
 
 
-def train(train_loader, model, criterion, optimizer, epoch, args, tensor_writer=None):
+def train(train_loader, model, criterion, focal_loss, optimizer, epoch, args, tensor_writer=None):
     ''' TODO write a dict to save previous featrues  check vqvae,
         the size of each feature is 512, os we need a tensor of 1024 * 512
         replace the last one every time
@@ -61,6 +61,10 @@ def train(train_loader, model, criterion, optimizer, epoch, args, tensor_writer=
         model.pre_weight1.data.copy_(pre_weight1)
 
         loss = criterion(output, target).view(1, -1).mm(weight1).view(1)
+        loss2 = focal_loss(cfeatures, images)
+
+        loss = loss + loss2
+
         acc1, acc5 = accuracy(output, target, topk=(1, 1))
         losses.update(loss.item(), images.size(0))
         top1.update(acc1[0], images.size(0))

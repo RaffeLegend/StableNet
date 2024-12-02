@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 from .model_utilis import load_state_dict_from_url
 
+from models.decoder import reconstruct
+
 
 __all__ = ['ResNet_with_table', 'resnet18_with_table', 'resnet34_with_table', 'resnet50_with_table']
 
@@ -152,6 +154,13 @@ class ResNet_with_table(nn.Module):
         # self.fc = nn.Linear(512 * block.expansion, num_classes)
         self.fc1 = nn.Linear(512 * block.expansion, num_classes)
 
+        self.reconstruct = reconstruct(input_dim=512 * block.expansion,
+                                       output_dim=3 * 224 * 224,
+                                       dim=3 * 224 * 224,
+                                       n_blk=2,
+                                       norm='none',
+                                       activ='relu')
+
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
@@ -225,7 +234,7 @@ class ResNet_with_table(nn.Module):
 
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
-        flatten_features = x
+        flatten_features = self.reconstruct(x)
         # x = self.fc(x)
         x = self.fc1(x)
 
