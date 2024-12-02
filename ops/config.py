@@ -115,7 +115,7 @@ parser.add_argument ('--lower_scale', type=float, default=0.8, help = 'weight la
 # for lr decay epochs
 parser.add_argument ('--epochs_decay', type=list, default=[24, 30], help = 'weight lambda for second order moment loss')
 
-parser.add_argument ('--classes_num', type=int, default=5, help = 'number of epoch for lambda to decay')
+parser.add_argument ('--classes_num', type=int, default=2, help = 'number of epoch for lambda to decay')
 
 parser.add_argument ('--dataset', type=str, default="DomainSet", help = '')
 parser.add_argument ('--sub_dataset', type=str, default="", help = '')
@@ -125,3 +125,5 @@ parser.add_argument('--sum', type=bool, default=True, help='sum or concat')
 parser.add_argument('--concat', type=int, default=1, help='sum or concat')
 parser.add_argument('--min_scale', type=float, default=0.8, help='')
 parser.add_argument('--presave_ratio', type=float, default=0.9, help='the ratio for presaving features')
+
+parser.add_argument('--checkpoint_path', type=str, default="", help='use for testing')
