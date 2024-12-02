@@ -132,8 +132,8 @@ def main_worker(ngpus_per_node, args):
     nn.init.xavier_uniform_(model.fc1.weight, .1)
     nn.init.constant_(model.fc1.bias, 0.)
 
-    nn.init.xavier_uniform_(model.reconstruct.weight, .1)
-    nn.init.constant_(model.reconstruct.bias, 0.)
+    # nn.init.xavier_uniform_(model.reconstruct.weight, .1)
+    # nn.init.constant_(model.reconstruct.bias, 0.)
 
     if args.distributed:
         if args.gpu is not None:
