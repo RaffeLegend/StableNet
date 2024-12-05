@@ -1,6 +1,63 @@
 import torch
 import torch.nn as nn
+    
+class ConvBlock(nn.Module):
+    def __init__(self, input_dim, output_dim, kernel_size=3, stride=1, padding=1, norm='none', activation='relu'):
+        super(ConvBlock, self).__init__()
+        use_bias = True
+        # self.conv = nn.Conv2d(input_dim, output_dim, kernel_size, stride, padding, bias=use_bias)
+        self.conv = nn.ConvTranspose2d(input_dim, output_dim, kernel_size, stride, padding, bias=use_bias)
 
+        # initialize normalization
+        norm_dim = output_dim
+        if norm == 'bn':
+            self.norm = nn.BatchNorm2d(norm_dim)
+        elif norm == 'in':
+            self.norm = nn.InstanceNorm2d(norm_dim)
+        elif norm == 'ln':
+            self.norm = LayerNorm(norm_dim)
+        elif norm == 'none':
+            self.norm = None
+        else:
+            assert 0, "Unsupported normalization: {}".format(norm)
+
+        # initialize activation
+        if activation == 'relu':
+            self.activation = nn.ReLU(inplace=True)
+        elif activation == 'lrelu':
+            self.activation = nn.LeakyReLU(0.2, inplace=True)
+        elif activation == 'prelu':
+            self.activation = nn.PReLU()
+        elif activation == 'selu':
+            self.activation = nn.SELU(inplace=True)
+        elif activation == 'tanh':
+            self.activation = nn.Tanh()
+        elif activation == 'none':
+            self.activation = None
+        else:
+            assert 0, "Unsupported activation: {}".format(activation)
+
+    def forward(self, x):
+        out = self.conv(x)
+        if self.norm:
+            out = self.norm(out)
+        if self.activation:
+            out = self.activation(out)
+        return out
+
+class ImageReconstructionNet(nn.Module):
+    def __init__(self, input_dim, output_dim, dim, n_blk, norm='none', activ='relu'):
+        super(ImageReconstructionNet, self).__init__()
+        self.model = []
+        self.model += [ConvBlock(input_dim, dim, norm=norm, activation=activ)]
+        for i in range(n_blk - 2):
+            self.model += [ConvBlock(dim, dim, norm=norm, activation=activ)]
+        self.model += [ConvBlock(dim, output_dim, norm='none', activation='tanh')]
+        self.model = nn.Sequential(*self.model)
+
+    def forward(self, x):
+        out = self.model(x)
+        return out
 
 class reconstruct(nn.Module):
     def __init__(self, input_dim, output_dim, dim, n_blk, norm='none', activ='relu'):

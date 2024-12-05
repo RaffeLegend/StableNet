@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from .model_utilis import load_state_dict_from_url
 
-from models.decoder import reconstruct
+from models.decoder import reconstruct, ImageReconstructionNet
 
 
 __all__ = ['ResNet_with_table', 'resnet18_with_table', 'resnet34_with_table', 'resnet50_with_table']
@@ -154,7 +154,13 @@ class ResNet_with_table(nn.Module):
         # self.fc = nn.Linear(512 * block.expansion, num_classes)
         self.fc1 = nn.Linear(512 * block.expansion, num_classes)
 
-        self.reconstruct = reconstruct(input_dim=512,
+        # self.reconstruct = reconstruct(input_dim=512,
+        #                                output_dim=3 * 128 * 128,
+        #                                dim=3 * 128 * 128,
+        #                                n_blk=2,
+        #                                norm='none',
+        #                                activ='relu')
+        self.reconstruct = ImageReconstructionNet(input_dim=512,
                                        output_dim=3 * 128 * 128,
                                        dim=3 * 128 * 128,
                                        n_blk=2,
