@@ -91,7 +91,8 @@ class FocalFrequencyLoss(nn.Module):
 
         # dynamic spectrum weighting (Hadamard product)
         loss = weight_matrix * freq_distance
-        return torch.mean(loss)
+        return torch.mean(loss, dim=(1, 2, 3, 4), keepdim=True).view(weight_matrix.size(0), 1)
+        # return torch.mean(loss)
 
     def forward(self, pred, target, matrix=None, **kwargs):
         """Forward function to calculate focal frequency loss.

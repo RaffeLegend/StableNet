@@ -14,7 +14,8 @@ class reconstruct(nn.Module):
 
     def forward(self, x):
         sz = x.shape
-        return self.model(x.view(x.size(0), -1)).view(sz)
+        out = self.model(x.view(x.size(0), -1))
+        return out.view(x.size(0), 3, 128, 128)
 
 
 class LinearBlock(nn.Module):

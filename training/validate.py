@@ -39,7 +39,7 @@ def validate(val_loader, model, criterion, epoch=0, test=True, args=None, tensor
                 images = images.cuda(args.gpu, non_blocking=True)
             target = target.cuda(args.gpu, non_blocking=True)
 
-            output, cfeatures = model(images)
+            output, cfeatures, recon = model(images)
             loss = criterion(output, target)
 
             acc1, acc5 = accuracy(output, target, topk=(1, 1))

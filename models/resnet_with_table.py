@@ -154,7 +154,7 @@ class ResNet_with_table(nn.Module):
         # self.fc = nn.Linear(512 * block.expansion, num_classes)
         self.fc1 = nn.Linear(512 * block.expansion, num_classes)
 
-        self.reconstruct = reconstruct(input_dim=512 * block.expansion,
+        self.reconstruct = reconstruct(input_dim=512,
                                        output_dim=3 * 128 * 128,
                                        dim=3 * 128 * 128,
                                        n_blk=2,

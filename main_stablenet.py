@@ -36,7 +36,7 @@ from training.focal_frequency_loss import FocalFrequencyLoss
 
 
 class Config:
-    def __init__(self, data_source, data_label, dataset_path, image_height, image_width, encoder, task, shuffle, batch_size, num_threads):
+    def __init__(self, data_source, data_label, dataset_path, image_height, image_width, encoder, task, shuffle, batch_size, num_threads, isTrain, no_crop, no_flip, augmentations, no_resize, blur_prob, blur_sig, jpg_prob, jpg_method, jpg_qual, cropSize):
         self.data_source = data_source
         self.data_label = data_label
         self.dataset_path = dataset_path
@@ -47,6 +47,17 @@ class Config:
         self.shuffle = shuffle
         self.batch_size = batch_size
         self.num_threads=num_threads
+        self.isTrain=isTrain
+        self.no_crop=no_crop
+        self.no_flip=no_flip
+        self.augmentations=augmentations
+        self.no_resize=no_resize
+        self.blur_prob=blur_prob
+        self.blur_sig=blur_sig
+        self.jpg_prob=jpg_prob
+        self.jpg_method=jpg_method
+        self.jpg_qual=jpg_qual
+        self.cropSize=cropSize
 
 def main():
     args = parser.parse_args()
@@ -127,8 +138,14 @@ def main_worker(ngpus_per_node, args):
         isTrain=True,
         no_crop=False,
         no_flip=False,
-        augmentation=True,
+        augmentations=False,
         no_resize=False,
+        blur_prob=0.5,
+        blur_sig=[0.0, 3.0],
+        jpg_prob=0.5,
+        jpg_method=["cv2", "pil"],
+        jpg_qual=[30, 100],
+        cropSize=128,
     )
 
     num_ftrs = model.fc1.in_features
