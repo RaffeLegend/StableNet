@@ -128,8 +128,8 @@ def main_worker(ngpus_per_node, args):
         data_source="folder",
         data_label="train",
         dataset_path=args.data,
-        image_height=128,
-        image_width=128,
+        image_height=256,
+        image_width=256,
         encoder="imagenet",
         task="classification",
         shuffle=True,
@@ -145,7 +145,7 @@ def main_worker(ngpus_per_node, args):
         jpg_prob=0.5,
         jpg_method=["cv2", "pil"],
         jpg_qual=[30, 100],
-        cropSize=128,
+        cropSize=224,
     )
 
     num_ftrs = model.fc1.in_features
@@ -199,8 +199,8 @@ def main_worker(ngpus_per_node, args):
                 checkpoint = torch.load(args.resume, map_location=loc)
             args.start_epoch = checkpoint['epoch']
             best_acc1 = checkpoint['best_acc1']
-            if args.gpu is not None:
-                best_acc1 = best_acc1.to(args.gpu)
+            #if args.gpu is not None:
+            #    best_acc1 = best_acc1.to(args.gpu)
             model.load_state_dict(checkpoint['state_dict'])
             optimizer.load_state_dict(checkpoint['optimizer'])
             print("=> loaded checkpoint '{}' (epoch {})"

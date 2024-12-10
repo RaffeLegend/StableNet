@@ -11,7 +11,7 @@ parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
 parser.add_argument('-data', metavar='DIR', default='/mnt/data2/users/hilight/yiwei/dataset/MixedSet',
                     help='path to dataset')
 
-parser.add_argument('-a', '--arch', metavar='ARCH', default='resnet18_with_table',
+parser.add_argument('-a', '--arch', metavar='ARCH', default='resnet50_with_table',
                     choices=model_names,
                     help='model architecture: ' +
                         ' | '.join(model_names) +
@@ -63,7 +63,7 @@ parser.add_argument('--multiprocessing-distributed', action='store_true',
                          'multi node data parallel training')
 
 parser.add_argument('--log_base',
-                    default='/mnt/data2/users/hilight/yiwei/train/checkpoints/Stable', type=str, metavar='PATH',
+                    default='/mnt/data2/users/hilight/yiwei/train/checkpoints/Stable_50', type=str, metavar='PATH',
                     help='path to save logs (default: none)')
 
 # for number of fourier spaces

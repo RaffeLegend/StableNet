@@ -160,10 +160,10 @@ class ResNet_with_table(nn.Module):
         #                                n_blk=2,
         #                                norm='none',
         #                                activ='relu')
-        self.reconstruct = ImageReconstructionNet(input_dim=512,
-                                       output_dim=3 * 128 * 128,
-                                       dim=3 * 128 * 128,
-                                       n_blk=2,
+        self.reconstruct = ImageReconstructionNet(input_dim=512 * block.expansion,
+                                       output_dim=3,
+                                       dim=128,
+                                       n_blk=4,
                                        norm='none',
                                        activ='relu')
 
@@ -173,7 +173,6 @@ class ResNet_with_table(nn.Module):
             elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
-
         # Zero-initialize the last BN in each residual branch,
         # so that the residual branch starts with zeros, and each residual block behaves like an identity.
         # This improves the model by 0.2~0.3% according to https://arxiv.org/abs/1706.02677
@@ -185,8 +184,8 @@ class ResNet_with_table(nn.Module):
                     nn.init.constant_(m.bn2.weight, 0)
 
         # for tables
-        # for different levels
-        self.register_buffer('pre_features', torch.zeros(args.n_feature, args.feature_dim))
+        # for different level
+        self.register_buffer('pre_features', torch.zeros(args.n_feature, args.feature_dim * 4))
         self.register_buffer('pre_weight1', torch.ones(args.n_feature, 1))
         if args.n_levels > 1:
             self.register_buffer('pre_features_2', torch.zeros(args.n_feature, args.feature_dim))
@@ -199,7 +198,6 @@ class ResNet_with_table(nn.Module):
             self.register_buffer('pre_weight1_4', torch.ones(args.n_feature, 1))
         if args.n_levels > 4:
             print('WARNING: THE NUMBER OF LEVELS CAN NOT BE BIGGER THAN 4')
-
 
 
     def _make_layer(self, block, planes, blocks, stride=1, dilate=False):
@@ -239,11 +237,12 @@ class ResNet_with_table(nn.Module):
         x = self.layer4(x)
 
         x = self.avgpool(x)
+        ori_features = x
         x = torch.flatten(x, 1)
         flatten_features = x
         # x = self.fc(x)
         x = self.fc1(x)
-        image = self.reconstruct(flatten_features)
+        image = self.reconstruct(ori_features)
 
         return x, flatten_features, image
 

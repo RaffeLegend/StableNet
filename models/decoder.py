@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
     
 class ConvBlock(nn.Module):
-    def __init__(self, input_dim, output_dim, kernel_size=3, stride=1, padding=1, norm='none', activation='relu'):
+    def __init__(self, input_dim, output_dim, kernel_size=5, stride=3, padding=1, norm='none', activation='relu'):
         super(ConvBlock, self).__init__()
         use_bias = True
         # self.conv = nn.Conv2d(input_dim, output_dim, kernel_size, stride, padding, bias=use_bias)
@@ -71,7 +71,7 @@ class reconstruct(nn.Module):
 
     def forward(self, x):
         sz = x.shape
-        out = self.model(x.view(x.size(0), -1))
+        out = self.model(x.view(x.size(0)))
         return out.view(x.size(0), 3, 128, 128)
 
 

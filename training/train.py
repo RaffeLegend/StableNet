@@ -15,7 +15,7 @@ from utilis.matrix import accuracy
 from utilis.meters import AverageMeter, ProgressMeter
 
 from training.reweighting import weight_learner
-
+import torch.nn.functional as F
 
 def train(train_loader, model, criterion, focal_loss, optimizer, epoch, args, tensor_writer=None):
     ''' TODO write a dict to save previous featrues  check vqvae,
@@ -48,6 +48,7 @@ def train(train_loader, model, criterion, focal_loss, optimizer, epoch, args, te
         target = target.cuda(args.gpu, non_blocking=True)
 
         output, cfeatures, recon = model(images)
+        recon = F.interpolate(recon, size=images.size()[-2:], mode='bilinear', align_corners=False)
         pre_features = model.pre_features
         pre_weight1 = model.pre_weight1
 
