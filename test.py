@@ -121,7 +121,11 @@ def main_worker(ngpus_per_node, args):
     # cfg.batch_size = 1
     test_loader = create_dataloader(cfg)
 
-    validate(test_loader, model, criterion, 0, True, args, tensor_writer=None)
+    log_dir = os.path.dirname(args.log_path)
+    print('tensorboard dir {}'.format(log_dir))
+    tensor_writer = SummaryWriter(log_dir)
+
+    validate(test_loader, model, criterion, 0, True, args, tensor_writer=tensor_writer)
 
 if __name__ == '__main__':
     main()
