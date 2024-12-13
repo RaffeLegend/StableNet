@@ -71,7 +71,7 @@ class reconstruct(nn.Module):
 
     def forward(self, x):
         sz = x.shape
-        out = self.model(x.view(x.size(0)))
+        out = self.model(x)
         return out.view(x.size(0), 3, 128, 128)
 
 

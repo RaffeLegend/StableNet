@@ -154,18 +154,18 @@ class ResNet_with_table(nn.Module):
         # self.fc = nn.Linear(512 * block.expansion, num_classes)
         self.fc1 = nn.Linear(512 * block.expansion, num_classes)
 
-        # self.reconstruct = reconstruct(input_dim=512,
-        #                                output_dim=3 * 128 * 128,
-        #                                dim=3 * 128 * 128,
-        #                                n_blk=2,
-        #                                norm='none',
-        #                                activ='relu')
-        self.reconstruct = ImageReconstructionNet(input_dim=512 * block.expansion,
-                                       output_dim=3,
-                                       dim=128,
-                                       n_blk=4,
+        self.reconstruct = reconstruct(input_dim=512 * block.expansion,
+                                       output_dim=3 * 128 * 128,
+                                       dim=3 * 128 * 128,
+                                       n_blk=2,
                                        norm='none',
                                        activ='relu')
+        # self.reconstruct = ImageReconstructionNet(input_dim=512 * block.expansion,
+        #                                output_dim=3,
+        #                                dim=128,
+        #                                n_blk=4,
+        #                                norm='none',
+        #                                activ='relu')
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -226,6 +226,7 @@ class ResNet_with_table(nn.Module):
 
     def _forward_impl(self, x):
         # See note [TorchScript super()]
+        print(x.shape)
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
@@ -242,7 +243,8 @@ class ResNet_with_table(nn.Module):
         flatten_features = x
         # x = self.fc(x)
         x = self.fc1(x)
-        image = self.reconstruct(ori_features)
+        # image = self.reconstruct(ori_features)
+        image = self.reconstruct(flatten_features)
 
         return x, flatten_features, image
 
