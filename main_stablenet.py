@@ -137,7 +137,7 @@ def main_worker(ngpus_per_node, args):
         num_threads=1,
         isTrain=True,
         no_crop=False,
-        no_flip=False,
+        no_flip=True,
         augmentations=False,
         no_resize=False,
         blur_prob=0.5,
