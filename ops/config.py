@@ -63,7 +63,7 @@ parser.add_argument('--multiprocessing-distributed', action='store_true',
                          'multi node data parallel training')
 
 parser.add_argument('--log_base',
-                    default='/mnt/data2/users/hilight/yiwei/train/checkpoints/Stable_50', type=str, metavar='PATH',
+                    default='/mnt/data2/users/hilight/yiwei/train/checkpoints/paper', type=str, metavar='PATH',
                     help='path to save logs (default: none)')
 
 # for number of fourier spaces
@@ -76,7 +76,7 @@ parser.add_argument ('--lrbl', type = float, default = 1.0, help = 'learning rat
 parser.add_argument ('--lambdap', type = float, default = 70.0, help = 'weight decay for weight1 ')
 parser.add_argument ('--lambdapre', type = float, default = 1, help = 'weight for pre_weight1 ')
 
-parser.add_argument ('--epochb', type = int, default = 20, help = 'number of epochs to balance')
+parser.add_argument ('--epochb', type = int, default = 1, help = 'number of epochs to balance')
 parser.add_argument ('--epochp', type = int, default = 0, help = 'number of epochs to pretrain')
 
 parser.add_argument ('--n_feature', type=int, default=128, help = 'number of pre-saved features')
@@ -85,12 +85,12 @@ parser.add_argument ('--feature_dim', type=int, default=512, help = 'the dim of 
 parser.add_argument ('--lrwarmup_epo', type=int, default=0, help = 'the dim of each feature')
 parser.add_argument ('--lrwarmup_decay', type=int, default=0.1, help = 'the dim of each feature')
 
-parser.add_argument ('--n_levels', type=int, default=1, help = 'number of global table levels')
+parser.add_argument ('--n_levels', type=int, default=4, help = 'number of global table levels')
 
 # for expectation
 parser.add_argument ('--lambda_decay_rate', type=float, default=1, help = 'ratio of epoch for lambda to decay')
 parser.add_argument ('--lambda_decay_epoch', type=int, default=5, help = 'number of epoch for lambda to decay')
-parser.add_argument ('--min_lambda_times', type=float, default=0.01, help = 'number of global table levels')
+parser.add_argument ('--min_lambda_times', type=float, default=0.002, help = 'number of global table levels')
 
 # for jointly train
 parser.add_argument ('--train_cnn_with_lossb', type=bool, default=False, help = 'whether train cnn with lossb')

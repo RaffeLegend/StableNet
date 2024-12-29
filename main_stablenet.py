@@ -135,7 +135,7 @@ def main_worker(ngpus_per_node, args):
         shuffle=True,
         batch_size=128,
         num_threads=1,
-        isTrain=True,
+        isTrain=False,
         no_crop=False,
         no_flip=True,
         augmentations=False,
@@ -222,7 +222,6 @@ def main_worker(ngpus_per_node, args):
     
     cfg.data_label = "test"
     cfg.shuffle = False
-    cfg.batch_size = 1
     test_loader = create_dataloader(cfg)
 
     # train_dataset = datasets.ImageFolder(
@@ -280,7 +279,7 @@ def main_worker(ngpus_per_node, args):
 
         train(train_loader, model, criterion_train, focal_loss, optimizer, epoch, args, tensor_writer)
 
-        val_acc1 = validate(val_loader, model, criterion, epoch, False, args, tensor_writer)
+        val_acc1 = validate(test_loader, model, criterion, epoch, True, args, tensor_writer)
         # acc1 = validate(test_loader, model, criterion, epoch, True, args, tensor_writer)
 
         #is_best = acc1 > best_acc1

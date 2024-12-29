@@ -11,11 +11,12 @@ import torch.optim
 import torch.utils.data
 import torch.utils.data.distributed
 from torch.autograd import Variable
+from torchvision import transforms
 from utilis.matrix import accuracy
 from utilis.meters import AverageMeter, ProgressMeter
 
 from training.reweighting import weight_learner
-import torch.nn.functional as F
+
 
 def train(train_loader, model, criterion, focal_loss, optimizer, epoch, args, tensor_writer=None):
     ''' TODO write a dict to save previous featrues  check vqvae,
@@ -48,7 +49,8 @@ def train(train_loader, model, criterion, focal_loss, optimizer, epoch, args, te
         target = target.cuda(args.gpu, non_blocking=True)
 
         output, cfeatures, recon = model(images)
-        recon = F.interpolate(recon, size=images.size()[-2:], mode='bilinear', align_corners=False)
+        images = transforms.Resize((recon.shape[-2:]))(images)
+        # recon = F.interpolate(recon, size=images.size()[-2:], mode='bilinear', align_corners=False)
         pre_features = model.pre_features
         pre_weight1 = model.pre_weight1
 
@@ -63,6 +65,8 @@ def train(train_loader, model, criterion, focal_loss, optimizer, epoch, args, te
 
         loss = criterion(output, target).view(1, -1).mm(weight1).view(1)
         loss2 = focal_loss(recon, images).view(1, -1).mm(weight1).view(1)
+        #print(focal_loss(recon, images).shape)
+        #loss2 = focal_loss(recon, images).mm(weight1).view(1)
 
         loss = loss + loss2
 
