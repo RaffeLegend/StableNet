@@ -88,7 +88,7 @@ parser.add_argument ('--lrwarmup_decay', type=int, default=0.1, help = 'the dim 
 parser.add_argument ('--n_levels', type=int, default=4, help = 'number of global table levels')
 
 # for expectation
-parser.add_argument ('--lambda_decay_rate', type=float, default=1, help = 'ratio of epoch for lambda to decay')
+parser.add_argument ('--lambda_decay_rate', type=float, default=3, help = 'ratio of epoch for lambda to decay')
 parser.add_argument ('--lambda_decay_epoch', type=int, default=5, help = 'number of epoch for lambda to decay')
 parser.add_argument ('--min_lambda_times', type=float, default=0.002, help = 'number of global table levels')
 

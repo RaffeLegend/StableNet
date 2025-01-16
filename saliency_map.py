@@ -19,6 +19,7 @@ import torchvision.transforms as transforms
 
 import models
 from ops.config import parser
+from training.focal_frequency_loss import FocalFrequencyLoss
 
 def load_model(args):
     model = models.__dict__[args.arch](args=args)
@@ -32,14 +33,19 @@ def load_model(args):
     model.load_state_dict(checkpoint['state_dict'])
     return model
 
-def compute_saliency_map(model, input_tensor, args, target_class=0):
+def compute_saliency_map(model, input_tensor, args, target_class):
 
     criterion = nn.CrossEntropyLoss().cuda(args.gpu)
+    focal_loss = FocalFrequencyLoss().cuda(args.gpu)
     input_tensor.requires_grad_()
-    output = model(input_tensor)
-    loss = criterion(output, target_class)
+    output, cfeatures, recon = model(input_tensor)
+    target_class = torch.tensor([target_class]).cuda()
+    loss1 = criterion(output, target_class)
+    input = transforms.Resize((recon.shape[-2:]))(input_tensor)
+    loss2 = focal_loss(recon, input)
+    loss = loss1 + loss2
     model.zero_grad()
-    loss.backward()
+    loss2.backward()
     saliency, _ = torch.max(input_tensor.grad.data.abs(), dim=1)
     return saliency
 
@@ -51,12 +57,6 @@ def visualize_saliency_map(saliency_map, title='Saliency Map'):
     plt.axis('off')
     plt.show()
 
-# Example usage:
-# model = ...  # Your pre-trained model
-# input_tensor = ...  # Your input tensor
-# target_class = ...  # The target class index
-# saliency_map = compute_saliency_map(model, input_tensor, target_class)
-# visualize_saliency_map(saliency_map)
 def process_image(image_path):
     image = Image.open(image_path).convert('RGB')
     transform = transforms.Compose([
@@ -69,20 +69,21 @@ def process_image(image_path):
 def generate_saliency_maps_for_folder(model, folder_path, args, target_class, output_folder):
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
-    
+    print(folder_path) 
     for filename in os.listdir(folder_path):
         if filename.endswith(('.png', '.jpg', '.jpeg')):
             image_path = os.path.join(folder_path, filename)
             input_tensor = process_image(image_path)
+            input_tensor = input_tensor.cuda()
             saliency_map = compute_saliency_map(model, input_tensor, args, target_class)
             output_path = os.path.join(output_folder, f'saliency_{filename}')
-            plt.imsave(output_path, saliency_map.numpy(), cmap=plt.cm.hot)
+            plt.imsave(output_path, saliency_map[0].cpu().numpy(), cmap=plt.cm.hot)
 
 # Example usage:
 model_path = "/mnt/data2/users/hilight/yiwei/train/checkpoints/paper/DomainSet/model_best.pth.tar"  # Your pre-trained model
-folder_path = '/path/to/your/image/folder'
-target_class = 0  # The target class index
-output_folder = '/path/to/output/folder'
+folder_path = '/mnt/data2/users/hilight/datasets/ForenSynths/test/progan/bird/1_fake'
+target_class = 1  # The target class index
+output_folder = './result'
 
 args = parser.parse_args()
 args.classes_num = 2

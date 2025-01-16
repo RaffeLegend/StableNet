@@ -75,7 +75,7 @@ def main_worker(ngpus_per_node, args):
     print("=> loading checkpoint '{}'".format(args.checkpoint_path))
     checkpoint = torch.load(args.checkpoint_path, map_location=torch.device('cpu'))
     model.cuda(args.gpu)
-    model.load_state_dict(checkpoint['state_dict'])
+    model.load_state_dict(checkpoint['state_dict'], strict=False)
 
     cfg = Config(
         data_source="folder",
@@ -104,7 +104,7 @@ def main_worker(ngpus_per_node, args):
     cfg.data_label = ""
     cfg.shuffle = False
     # cfg.batch_size = 1
-    dataroot = os.path.join(cfg.dataset_path, 'test')
+    dataroot = os.path.join(cfg.dataset_path, '')
     result_dict = dict()
     tensor_writer = SummaryWriter(os.path.dirname(args.log_path))
     for v_id, val in enumerate(os.listdir(dataroot)):
