@@ -34,7 +34,6 @@ def load_model(args):
     return model
 
 def compute_saliency_map(model, input_tensor, args, target_class):
-
     criterion = nn.CrossEntropyLoss().cuda(args.gpu)
     focal_loss = FocalFrequencyLoss().cuda(args.gpu)
     input_tensor.requires_grad_()
@@ -49,11 +48,13 @@ def compute_saliency_map(model, input_tensor, args, target_class):
     saliency, _ = torch.max(input_tensor.grad.data.abs(), dim=1)
     return saliency
 
-def visualize_saliency_map(saliency_map, title='Saliency Map'):
-    saliency_map = saliency_map.numpy()
-    plt.imshow(saliency_map, cmap=plt.cm.hot)
+def overlay_saliency_on_image(image_path, saliency_map):
+    image = Image.open(image_path).convert('RGB')
+    image = image.resize((saliency_map.shape[1], saliency_map.shape[0]))
+    plt.imshow(image)
+    plt.imshow(saliency_map, cmap=plt.cm.hot, alpha=0.5)
     plt.colorbar()
-    plt.title(title)
+    plt.title('Saliency Map Overlay')
     plt.axis('off')
     plt.show()
 
@@ -77,7 +78,15 @@ def generate_saliency_maps_for_folder(model, folder_path, args, target_class, ou
             input_tensor = input_tensor.cuda()
             saliency_map = compute_saliency_map(model, input_tensor, args, target_class)
             output_path = os.path.join(output_folder, f'saliency_{filename}')
+            image = Image.open(image_path).convert('RGB')
+            image = image.resize((saliency_map.shape[1], saliency_map.shape[0]))
+            plt.imshow(image)
+            plt.imshow(saliency_map, cmap=plt.cm.hot, alpha=0.5)
+            plt.axis('off')
+            # plt.savefig(output_path, bbox_inches='tight', pad_inches=0)
+            # plt.close()
             plt.imsave(output_path, saliency_map[0].cpu().numpy(), cmap=plt.cm.hot)
+            plt.close()
 
 # Example usage:
 model_path = "/mnt/data2/users/hilight/yiwei/train/checkpoints/paper/DomainSet/model_best.pth.tar"  # Your pre-trained model
